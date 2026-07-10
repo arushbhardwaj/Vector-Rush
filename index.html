@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vector Rush | 3D Cyberpunk Endless Runner</title>
+  <meta name="description" content="Race through a glowing cyberpunk vector grid, dodging neon obstacles in this fast-paced 3D endless runner. Play with keyboard or mobile touch controls.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Audio Toggle Control (Persistent in top right) -->
+  <div class="audio-toggle-container">
+    <button id="audio-toggle-btn" class="audio-btn" title="Toggle Sound Synth">
+      <!-- Muted Icon by default -->
+      <svg id="audio-icon-muted" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+        <path d="M9 9v6a3 3 0 0 0 3 3h1.586l4.707 4.707A1 1 0 0 0 20 22V4a1 1 0 0 0-1.707-.707L13.586 8H12a3 3 0 0 0-3 3z"></path>
+      </svg>
+      <!-- Playing Icon (Hidden initially) -->
+      <svg id="audio-icon-playing" class="hidden" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div id="game-container">
+    <!-- Main rendering canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Floating notifications (e.g. Near Misses, Shield warnings) -->
+    <div id="screen-notification">NEAR MISS</div>
+
+    <!-- Mobile Touch Input Zones -->
+    <div class="mobile-touch-zones">
+      <div id="touch-left" class="touch-zone touch-zone-left">
+        <div class="touch-hint">◀ STEER LEFT</div>
+      </div>
+      <div id="touch-right" class="touch-zone touch-zone-right">
+        <div class="touch-hint">STEER RIGHT ▶</div>
+      </div>
+    </div>
+
+    <!-- Game HUD Layer (Score, speed, shield tracking) -->
+    <div id="hud-container">
+      <div class="hud-panel">
+        <div class="hud-group">
+          <span class="hud-label">Score</span>
+          <span id="score-val" class="hud-value">000,000</span>
+        </div>
+        
+        <div id="multiplier-group" class="hud-group" style="align-items: center;">
+          <span class="hud-label">Multiplier</span>
+          <span id="multiplier-val" class="hud-value pink">1.0x</span>
+        </div>
+
+        <div class="hud-group" style="align-items: flex-end;">
+          <span class="hud-label">Shield Integrity</span>
+          <span id="shield-val" class="hud-value yellow">SHIELD: ACTIVE</span>
+        </div>
+      </div>
+
+      <div class="hud-bottom">
+        <div class="hud-group" style="padding: 6px 12px; align-items: center; border-radius: 20px;">
+          <span class="hud-label">Velocity Gauge</span>
+          <div class="boost-container">
+            <div id="boost-bar-val" class="boost-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Menu Overlay -->
+    <div id="start-overlay" class="overlay">
+      <div class="menu-panel">
+        <div class="title-container">
+          <h1 class="game-title">Vector Rush</h1>
+          <span class="title-tagline">Protocol: Cyber Run</span>
+        </div>
+
+        <div class="info-section">
+          <div class="high-score-text">
+            LOCAL RECORD: <span id="record-val">000,000</span>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <span style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; color: var(--neon-cyan);">System Controls</span>
+          <div class="instructions-grid">
+            <div class="instruction-item">
+              <span class="key-cap">A</span> / <span class="key-cap">◀</span>
+              <span>Steer Left</span>
+            </div>
+            <div class="instruction-item">
+              <span class="key-cap">D</span> / <span class="key-cap">▶</span>
+              <span>Steer Right</span>
+            </div>
+            <div class="instruction-item" style="grid-column: span 2; justify-content: center; margin-top: 5px; color: rgba(255,255,255,0.5);">
+              <span>Mobile: Tap Left or Right screen sides to steer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Settings -->
+        <div class="settings-row">
+          <button id="btn-quality-low" class="btn-secondary">Low-Res (Fast)</button>
+          <button id="btn-quality-high" class="btn-secondary active">High-Res (HD)</button>
+        </div>
+
+        <button id="btn-start" class="btn">Launch Core</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen Overlay -->
+    <div id="gameover-overlay" class="overlay hidden">
+      <div class="menu-panel" style="border-color: var(--neon-pink); box-shadow: 0 0 40px rgba(255, 0, 127, 0.15);">
+        <div class="title-container">
+          <h1 class="game-title" style="text-shadow: 0 0 15px rgba(255, 0, 127, 0.8); color: var(--neon-pink);">DE-SYNCED</h1>
+          <span class="title-tagline" style="color: var(--neon-cyan); text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);">Connection Severed</span>
+        </div>
+
+        <div class="stats-list">
+          <div class="stats-row">
+            <span class="stats-label">Distance Tracked</span>
+            <span id="stat-distance" class="stats-val">0m</span>
+          </div>
+          <div class="stats-row">
+            <span class="stats-label">Near-Miss Triggers</span>
+            <span id="stat-misses" class="stats-val">0</span>
+          </div>
+          <div class="stats-row">
+            <span class="stats-label">Peak Speed Achieved</span>
+            <span id="stat-speed" class="stats-val">0 km/h</span>
+          </div>
+          <div class="stats-row" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; margin-top: 5px;">
+            <span class="stats-label" style="font-weight: bold; color: var(--neon-yellow);">Final Score</span>
+            <span id="stat-score" class="stats-val highlight">000,000</span>
+          </div>
+        </div>
+
+        <button id="btn-restart" class="btn" style="background: linear-gradient(135deg, var(--neon-pink), rgba(255, 0, 127, 0.4)); border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);">
+          Re-synchronize
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
