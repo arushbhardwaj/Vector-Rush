@@ -466,6 +466,34 @@ h1.game-title {
   text-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
 }
 
+/* HUD Pause Button */
+.hud-btn {
+  background: rgba(10, 10, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 8px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-family: var(--font-cyber);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.hud-btn:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+  background: rgba(0, 243, 255, 0.1);
+}
+
 /* Audio Control Button (top right toggle) */
 .audio-toggle-container {
   position: absolute;

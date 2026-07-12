@@ -779,7 +779,7 @@ class Game {
     this.ctx = this.canvas.getContext('2d');
     
     this.quality = 'high'; // 'high' uses pixel ratio, 'low' uses standard scale
-    this.state = 'MENU'; // MENU, PLAYING, GAMEOVER
+    this.state = 'MENU'; // MENU, PLAYING, PAUSED, GAMEOVER
     
     this.camera = new Camera();
     this.ship = new PlayerShip();
@@ -895,6 +895,15 @@ class Game {
           this.startGame();
         }
       }
+      
+      // Pause toggle
+      if (e.code === 'Escape') {
+        if (this.state === 'PLAYING') {
+          this.pauseGame();
+        } else if (this.state === 'PAUSED') {
+          this.resumeGame();
+        }
+      }
     });
     
     window.addEventListener('keyup', (e) => {
@@ -918,6 +927,20 @@ class Game {
     document.getElementById('btn-restart').addEventListener('click', () => {
       this.resetGame();
       this.startGame();
+    });
+
+    document.getElementById('btn-resume').addEventListener('click', () => {
+      this.resumeGame();
+    });
+
+    document.getElementById('btn-quit-menu').addEventListener('click', () => {
+      this.quitToMenu();
+    });
+
+    document.getElementById('hud-pause-btn').addEventListener('click', () => {
+      if (this.state === 'PLAYING') {
+        this.pauseGame();
+      }
     });
 
     // Quality togglers
@@ -1030,10 +1053,32 @@ class Game {
       // Hide menus, reveal HUD
       document.getElementById('start-overlay').classList.add('hidden');
       document.getElementById('gameover-overlay').classList.add('hidden');
+      document.getElementById('pause-overlay').classList.add('hidden');
       
       // Show near-miss alert element container
       document.getElementById('screen-notification').classList.remove('active');
     }
+  }
+
+  pauseGame() {
+    if (this.state !== 'PLAYING') return;
+    this.state = 'PAUSED';
+    document.getElementById('pause-overlay').classList.remove('hidden');
+  }
+
+  resumeGame() {
+    if (this.state !== 'PAUSED') return;
+    this.state = 'PLAYING';
+    this.lastTime = performance.now();
+    document.getElementById('pause-overlay').classList.add('hidden');
+  }
+
+  quitToMenu() {
+    this.resetGame();
+    document.getElementById('pause-overlay').classList.add('hidden');
+    document.getElementById('start-overlay').classList.remove('hidden');
+    document.getElementById('gameover-overlay').classList.add('hidden');
+    this.state = 'MENU';
   }
 
   triggerScreenNotification(text, className, duration = 1.2) {
@@ -1626,6 +1671,9 @@ class Game {
 
     if (this.state === 'PLAYING') {
       this.update(dt);
+      this.draw();
+    } else if (this.state === 'PAUSED') {
+      // Frozen render during pause overlay
       this.draw();
     } else if (this.state === 'GAMEOVER') {
       // Just render static view during GameOver screen overlay
