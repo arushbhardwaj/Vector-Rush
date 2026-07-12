@@ -722,11 +722,13 @@ class PlayerShip {
 // --- Camera System ---
 class Camera {
   constructor() {
-    this.x = 0;       // track relative camera center
-    this.y = 1.5;     // camera vertical eye level
-    this.z = 0;       // current game distance traveled
-    this.fov = 320;   // Focal length (depth scale)
+    this.x = 0;            // track relative camera center
+    this.y = 3.2;          // camera vertical eye level (higher = looking further down)
+    this.z = 0;            // current game distance traveled
+    this.fov = 320;        // Focal length (depth scale)
     this.baseFov = 320;
+    this.horizonOffset = 25;   // shifts vanishing point upward (px)
+    this.depthWarp = 0.0025;   // quadratic depth compression for longer track feel
   }
 
   update(dt, shipX, targetSpeedRatio) {
@@ -736,6 +738,12 @@ class Camera {
     // Zoom/FOV distortion when speed boosting
     const targetFov = this.baseFov + targetSpeedRatio * 60;
     this.fov += (targetFov - this.fov) * 0.05;
+
+    // Floor descends as speed increases — horizon drops, camera tilts down
+    const targetHorizon = 25 + targetSpeedRatio * 90;
+    this.horizonOffset += (targetHorizon - this.horizonOffset) * 0.03;
+    const targetCamY = 3.2 + targetSpeedRatio * 5;
+    this.y += (targetCamY - this.y) * 0.03;
   }
 
   // Projects absolute 3D track positions onto 2D canvas coordinates
@@ -750,9 +758,15 @@ class Camera {
     const dx = (xRelative + curveOffset) - (this.x + camCurveOffset);
     const dy = yRelative - this.y;
 
-    const scale = this.fov / dz;
+    // Depth warp: quadratic term keeps distant objects smaller longer,
+    // then they scale up rapidly as they approach the player
+    const depthWarp = dz + dz * dz * this.depthWarp;
+    const scale = this.fov / depthWarp;
+    
+    // Horizon offset shifts the vanishing point upward
+    const horizonY = screenHeight / 2 - this.horizonOffset;
     const px = screenWidth / 2 + dx * scale;
-    const py = screenHeight / 2 - dy * scale;
+    const py = horizonY - dy * scale;
     
     return { x: px, y: py, scale: scale };
   }
@@ -1117,7 +1131,7 @@ class Game {
     const trackHalfW = this.trackWidth / 2;
     
     // As game progresses, patterns get harder
-    const level = Math.min(5, Math.floor(this.distance / 1200));
+    const level = Math.min(6, Math.floor(this.distance / 800));
     
     // Decide pattern type randomly
     const rand = Math.random();
@@ -1127,8 +1141,8 @@ class Game {
       const lanes = [-25, 0, 25];
       const selectedLane = lanes[Math.floor(Math.random() * lanes.length)];
       
-      const width = Math.random() * 4 + 7;
-      const height = Math.random() * 6 + 18;
+      const width = Math.random() * 6 + 10;
+      const height = Math.random() * 10 + 26;
       
       this.obstacles.push(new Obstacle(selectedLane, this.nextSpawnZ, width, height, 'pillar'));
     } 
@@ -1140,28 +1154,28 @@ class Game {
         const leftX = -26;
         const rightX = 26;
         // Spawn two pillars to support the crossbar drawn inside Obstacle class
-        this.obstacles.push(new Obstacle(leftX, this.nextSpawnZ, 6, 26, 'arch'));
-        this.obstacles.push(new Obstacle(rightX, this.nextSpawnZ, 6, 26, 'pillar'));
+        this.obstacles.push(new Obstacle(leftX, this.nextSpawnZ, 10, 36, 'arch'));
+        this.obstacles.push(new Obstacle(rightX, this.nextSpawnZ, 10, 36, 'pillar'));
       } else {
         // Double pillars blocking left and right, center open
-        this.obstacles.push(new Obstacle(-24, this.nextSpawnZ, 10, 20, 'pillar'));
-        this.obstacles.push(new Obstacle(24, this.nextSpawnZ, 10, 20, 'pillar'));
+        this.obstacles.push(new Obstacle(-24, this.nextSpawnZ, 16, 30, 'pillar'));
+        this.obstacles.push(new Obstacle(24, this.nextSpawnZ, 16, 30, 'pillar'));
       }
     } 
     // Pattern 3: Sliding / Oscillating obstacles
     else if (rand < 0.85 + level * 0.02) {
       const dir = Math.random() > 0.5 ? 'slide-left' : 'slide-right';
       const offset = (Math.random() - 0.5) * 20;
-      this.obstacles.push(new Obstacle(offset, this.nextSpawnZ, 12, 16, dir));
+      this.obstacles.push(new Obstacle(offset, this.nextSpawnZ, 18, 24, dir));
     } 
     // Pattern 4: Triple Wall Canyon
     else {
       // 3 pillars with narrow escape corridors
       const openLane = Math.floor(Math.random() * 3); // 0 (left), 1 (center), 2 (right) open
       
-      if (openLane !== 0) this.obstacles.push(new Obstacle(-28, this.nextSpawnZ, 12, 22, 'pillar'));
-      if (openLane !== 1) this.obstacles.push(new Obstacle(0, this.nextSpawnZ, 12, 22, 'pillar'));
-      if (openLane !== 2) this.obstacles.push(new Obstacle(28, this.nextSpawnZ, 12, 22, 'pillar'));
+      if (openLane !== 0) this.obstacles.push(new Obstacle(-28, this.nextSpawnZ, 18, 30, 'pillar'));
+      if (openLane !== 1) this.obstacles.push(new Obstacle(0, this.nextSpawnZ, 18, 30, 'pillar'));
+      if (openLane !== 2) this.obstacles.push(new Obstacle(28, this.nextSpawnZ, 18, 30, 'pillar'));
     }
     
     // Spawn powerups in empty spaces occasionally
@@ -1173,8 +1187,14 @@ class Game {
     
     // Calculate gap to next hurdle: narrows down as we speed up, making the game dense
     const speedFactor = this.currentSpeed / this.maxSpeed;
-    const baseGap = 130 - level * 8;
-    this.nextSpawnZ += Math.max(70, baseGap - speedFactor * 35);
+    const baseGap = 100 - level * 10;
+    this.nextSpawnZ += Math.max(45, baseGap - speedFactor * 45);
+
+    // Sometimes spawn another pattern slightly closer for extra density
+    if (level > 1 && Math.random() < 0.2 + level * 0.04) {
+      this.nextSpawnZ -= 30;
+      this.proceduralSpawner();
+    }
   }
 
   // --- Collision and Near-Miss Systems ---
