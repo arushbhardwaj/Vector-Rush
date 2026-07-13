@@ -789,12 +789,12 @@ class Game {
     this.keys = {};
     this.mobileSteer = 0; // -1 to 1 steering amount from touch zones
     this.steerVelocity = 0;
-    this.steerSensitivity = 16.0; // speed of sideways movement
+    this.steerSensitivity = 20.0; // speed of sideways movement
     
     // Speed tracking
-    this.baseSpeed = 35;
-    this.currentSpeed = 35;
-    this.maxSpeed = 160;
+    this.baseSpeed = 50;
+    this.currentSpeed = 50;
+    this.maxSpeed = 220;
     this.speedBoost = 0;
     
     // Lists
@@ -1385,7 +1385,7 @@ class Game {
     this.steerVelocity += (targetSteerVel - this.steerVelocity) * 0.18;
     
     // Steer ship
-    this.ship.x += this.steerVelocity * dt * 2.8;
+    this.ship.x += this.steerVelocity * dt * 3.5;
     
     // Bounds check boundary limits
     const halfTrackW = this.trackWidth / 2;
@@ -1397,7 +1397,7 @@ class Game {
     let targetSpeed = this.baseSpeed + (this.distance * 0.005);
     
     if (this.ship.boostActive > 0) {
-      targetSpeed = this.baseSpeed + 80; // extreme velocity
+      targetSpeed = this.baseSpeed + 120; // extreme velocity
     }
     
     targetSpeed = Math.min(this.maxSpeed, targetSpeed);
