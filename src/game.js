@@ -645,7 +645,7 @@ export class Game {
       this.ctx.stroke();
     });
 
-    this.trackRenderer.draw(ctx, width, height);
+    this.trackRenderer.draw(this.ctx, width, height);
 
     this.powerups.forEach(p => p.draw(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this)));
 
