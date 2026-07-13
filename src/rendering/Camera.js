@@ -3,8 +3,8 @@ export class Camera {
     this.x = 0;
     this.y = 3.2;
     this.z = 0;
-    this.fov = 320;
-    this.baseFov = 320;
+    this.fov = 570;
+    this.baseFov = 570;
     this.horizonOffset = 25;
     this.depthWarp = 0.0025;
   }
@@ -12,7 +12,7 @@ export class Camera {
   update(dt, shipX, targetSpeedRatio) {
     this.x += (shipX * 0.72 - this.x) * 0.12;
 
-    const targetFov = this.baseFov + targetSpeedRatio * 60;
+    const targetFov = this.baseFov + targetSpeedRatio * 107;
     this.fov += (targetFov - this.fov) * 0.05;
 
     const targetHorizon = 25 + targetSpeedRatio * 90;
