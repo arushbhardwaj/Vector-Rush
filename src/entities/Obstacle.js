@@ -13,10 +13,15 @@ export class Obstacle {
     this.slideDir = type === 'slide-left' ? -1 : 1;
     this.slideSpeed = 22;
     this.slideRange = 30;
+    this.oscillate = null;
+    this._oscPhase = 0;
   }
 
   update(dt, currentSpeed) {
-    if (this.type.startsWith('slide')) {
+    if (this.oscillate) {
+      this._oscPhase += dt * this.oscillate.frequency;
+      this.x = this.oscillate.baseX + Math.sin(this._oscPhase) * this.oscillate.amplitude;
+    } else if (this.type.startsWith('slide')) {
       this.x += this.slideDir * this.slideSpeed * dt;
       if (Math.abs(this.x) > this.slideRange) {
         this.x = Math.sign(this.x) * this.slideRange;

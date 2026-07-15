@@ -1,10 +1,9 @@
 import { SoundSynth } from './audio/SoundSynth.js';
 import { PlayerShip } from './entities/PlayerShip.js';
-import { Obstacle } from './entities/Obstacle.js';
-import { PowerUp } from './entities/PowerUp.js';
 import { Particle } from './effects/Particle.js';
 import { Camera } from './rendering/Camera.js';
 import { TrackRenderer } from './rendering/TrackRenderer.js';
+import { ChunkManager } from './chunks/ChunkManager.js';
 import { formatScore } from './utils/helpers.js';
 
 export class Game {
@@ -35,9 +34,9 @@ export class Game {
     this.particles = [];
     this.stars = [];
 
-    this.nextSpawnZ = 120;
     this.trackWidth = 84;
     this.drawDistance = 450;
+    this.chunkManager = new ChunkManager(this.trackWidth, this.drawDistance);
 
     this.score = 0;
     this.highScore = 0;
@@ -327,7 +326,7 @@ export class Game {
     this.particles = [];
 
     this.currentSpeed = 35;
-    this.nextSpawnZ = 120;
+    this.chunkManager.reset();
     this.score = 0;
     this.distance = 0;
     this.nearMissCount = 0;
@@ -366,61 +365,6 @@ export class Game {
     setTimeout(() => {
       document.getElementById('gameover-overlay').classList.remove('hidden');
     }, 1200);
-  }
-
-  proceduralSpawner() {
-    if (this.camera.z + this.drawDistance < this.nextSpawnZ) return;
-
-    const trackHalfW = this.trackWidth / 2;
-    const level = Math.min(6, Math.floor(this.distance / 800));
-    const rand = Math.random();
-
-    if (rand < 0.35 - level * 0.03) {
-      const lanes = [-25, 0, 25];
-      const selectedLane = lanes[Math.floor(Math.random() * lanes.length)];
-
-      const width = Math.random() * 6 + 10;
-      const height = Math.random() * 10 + 26;
-
-      this.obstacles.push(new Obstacle(selectedLane, this.nextSpawnZ, width, height, 'pillar'));
-    } else if (rand < 0.65 - level * 0.02) {
-      const type = Math.random() > 0.4 ? 'arch' : 'pillar';
-
-      if (type === 'arch') {
-        const leftX = -26;
-        const rightX = 26;
-        this.obstacles.push(new Obstacle(leftX, this.nextSpawnZ, 10, 36, 'arch'));
-        this.obstacles.push(new Obstacle(rightX, this.nextSpawnZ, 10, 36, 'pillar'));
-      } else {
-        this.obstacles.push(new Obstacle(-24, this.nextSpawnZ, 16, 30, 'pillar'));
-        this.obstacles.push(new Obstacle(24, this.nextSpawnZ, 16, 30, 'pillar'));
-      }
-    } else if (rand < 0.85 + level * 0.02) {
-      const dir = Math.random() > 0.5 ? 'slide-left' : 'slide-right';
-      const offset = (Math.random() - 0.5) * 20;
-      this.obstacles.push(new Obstacle(offset, this.nextSpawnZ, 18, 24, dir));
-    } else {
-      const openLane = Math.floor(Math.random() * 3);
-
-      if (openLane !== 0) this.obstacles.push(new Obstacle(-28, this.nextSpawnZ, 18, 30, 'pillar'));
-      if (openLane !== 1) this.obstacles.push(new Obstacle(0, this.nextSpawnZ, 18, 30, 'pillar'));
-      if (openLane !== 2) this.obstacles.push(new Obstacle(28, this.nextSpawnZ, 18, 30, 'pillar'));
-    }
-
-    if (Math.random() < 0.22) {
-      const pX = (Math.random() - 0.5) * 44;
-      const type = Math.random() > 0.78 ? 'boost' : 'shield';
-      this.powerups.push(new PowerUp(pX, this.nextSpawnZ + 20, type));
-    }
-
-    const speedFactor = this.currentSpeed / this.maxSpeed;
-    const baseGap = 100 - level * 10;
-    this.nextSpawnZ += Math.max(45, baseGap - speedFactor * 45);
-
-    if (level > 1 && Math.random() < 0.2 + level * 0.04) {
-      this.nextSpawnZ -= 30;
-      this.proceduralSpawner();
-    }
   }
 
   checkCollisions() {
@@ -571,13 +515,12 @@ export class Game {
     this.camera.update(dt, this.ship.x, (this.currentSpeed - 35) / 125);
     this.ship.update(dt, this.currentSpeed, this.steerVelocity);
 
-    this.proceduralSpawner();
+    const result = this.chunkManager.update(this.camera.z, this.currentSpeed);
+    this.obstacles = result.obstacles;
+    this.powerups = result.powerups;
 
     this.obstacles.forEach(o => o.update(dt, this.currentSpeed));
     this.powerups.forEach(p => p.update(dt));
-
-    this.obstacles = this.obstacles.filter(o => o.z + o.d > this.camera.z - 10);
-    this.powerups = this.powerups.filter(p => !p.collected && p.z > this.camera.z - 5);
 
     this.stars.forEach(s => {
       if (s.z < this.camera.z) {
@@ -645,6 +588,7 @@ export class Game {
       this.ctx.stroke();
     });
 
+    this.chunkManager.drawGround(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this));
     this.trackRenderer.draw(this.ctx, width, height);
 
     this.powerups.forEach(p => p.draw(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this)));
