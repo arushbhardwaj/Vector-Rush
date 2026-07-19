@@ -3,7 +3,6 @@ import { PlayerShip } from './entities/PlayerShip.js';
 import { Particle } from './effects/Particle.js';
 import { Camera } from './rendering/Camera.js';
 import { TrackRenderer } from './rendering/TrackRenderer.js';
-import { ChunkManager } from './chunks/ChunkManager.js';
 import { formatScore } from './utils/helpers.js';
 import { COLORS, CANVAS_GLOW } from './styleGuide.js';
 
@@ -37,7 +36,6 @@ export class Game {
 
     this.trackWidth = 600;
     this.drawDistance = 450;
-    this.chunkManager = new ChunkManager(this.trackWidth, this.drawDistance);
 
     this.score = 0;
     this.highScore = 0;
@@ -327,7 +325,6 @@ export class Game {
     this.particles = [];
 
     this.currentSpeed = 35;
-    this.chunkManager.reset();
     this.score = 0;
     this.distance = 0;
     this.nearMissCount = 0;
@@ -521,9 +518,6 @@ export class Game {
     this.camera.update(dt, this.ship.x, (this.currentSpeed - 35) / 125);
     this.ship.update(dt, this.currentSpeed, this.steerVelocity, this.multiplier, this.camera.z);
 
-    const result = this.chunkManager.update(this.camera.z, this.currentSpeed);
-    this.obstacles = result.obstacles;
-    this.powerups = result.powerups;
 
     this.obstacles.forEach(o => o.update(dt, this.currentSpeed));
     this.powerups.forEach(p => p.update(dt));
@@ -601,7 +595,6 @@ export class Game {
       this.ctx.stroke();
     });
 
-    this.chunkManager.drawGround(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this));
     this.trackRenderer.draw(this.ctx, width, height);
 
     this.powerups.forEach(p => p.draw(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this)));
