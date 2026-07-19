@@ -30,12 +30,16 @@ const BASE_DIMS = {
 const PATTERNS = [
   {
     name: 'corridor_narrow',
-    weight: 20,
+    weight: 25,
     obstacles: [
       { type: 'pillar', x: -32, y: 0, z: 10, scale: 1.0 },
       { type: 'pillar', x:  32, y: 0, z: 10, scale: 1.0 },
-      { type: 'pillar', x: -32, y: 0, z: 50, scale: 1.0 },
-      { type: 'pillar', x:  32, y: 0, z: 50, scale: 1.0 },
+      { type: 'pillar', x: -32, y: 0, z: 25, scale: 0.9 },
+      { type: 'pillar', x:  32, y: 0, z: 25, scale: 0.9 },
+      { type: 'pillar', x: -32, y: 0, z: 40, scale: 1.1 },
+      { type: 'pillar', x:  32, y: 0, z: 40, scale: 1.1 },
+      { type: 'pillar', x: -32, y: 0, z: 55, scale: 0.8 },
+      { type: 'pillar', x:  32, y: 0, z: 55, scale: 0.8 },
     ],
     powerups: [],
   },
@@ -43,19 +47,23 @@ const PATTERNS = [
     name: 'gate_pillars',
     weight: 20,
     obstacles: [
-      { type: 'pillar', x: -26, y: 0, z: 45, scale: 1.0 },
-      { type: 'pillar', x:  26, y: 0, z: 45, scale: 1.0 },
+      { type: 'pillar', x: -26, y: 0, z: 35, scale: 1.0 },
+      { type: 'pillar', x:  26, y: 0, z: 35, scale: 1.0 },
+      { type: 'pillar', x: -26, y: 0, z: 55, scale: 0.9 },
+      { type: 'pillar', x:  26, y: 0, z: 55, scale: 0.9 },
     ],
     powerups: [],
   },
   {
     name: 'rising_towers',
-    weight: 25,
+    weight: 30,
     obstacles: [
-      { type: 'pillar', x: -28, y: 0, z: 15, scale: 1.0 },
-      { type: 'pillar', x:   5, y: 0, z: 35, scale: 1.4 },
-      { type: 'pillar', x:  32, y: 0, z: 55, scale: 0.8 },
-      { type: 'pillar', x: -12, y: 0, z: 75, scale: 1.7 },
+      { type: 'pillar', x: -28, y: 0, z: 10, scale: 1.0 },
+      { type: 'pillar', x:   5, y: 0, z: 25, scale: 1.4 },
+      { type: 'pillar', x:  32, y: 0, z: 40, scale: 0.8 },
+      { type: 'pillar', x: -12, y: 0, z: 55, scale: 1.7 },
+      { type: 'pillar', x:  20, y: 0, z: 70, scale: 1.2 },
+      { type: 'pillar', x: -35, y: 0, z: 85, scale: 1.0 },
     ],
     powerups: [],
   },
@@ -70,7 +78,7 @@ const PATTERNS = [
   },
   {
     name: 'open_stretch',
-    weight: 30,
+    weight: 10,
     obstacles: [],
     powerups: [
       { x: -20, z: 25, type: 'shield' },
@@ -204,6 +212,7 @@ export class ChunkManager {
 
   _applyVariation(template, patternName) {
     const level = Math.min(6, Math.floor(this._totalDistance / 800));
+    const halfTrack = this.trackWidth / 2 - 30;
 
     return template.map(o => {
       const c = { ...o };
@@ -211,29 +220,34 @@ export class ChunkManager {
 
       switch (patternName) {
         case 'corridor_narrow': {
-          const gapMin = 44 - level * 3;
-          const gapMax = 80 - level * 4;
+          const gapMin = Math.max(18, 38 - level * 3);
+          const gapMax = Math.max(26, 70 - level * 4);
           const gap = gapMin + Math.random() * (gapMax - gapMin);
-          c.x = c.x < 0 ? -(gap / 2) : (gap / 2);
+          const maxCenter = halfTrack - gap / 2;
+          const center = (Math.random() * 2 - 1) * maxCenter;
+          c.x = c.x < 0 ? center - gap / 2 : center + gap / 2;
           break;
         }
         case 'gate_pillars': {
-          const gapMin = 40 - level * 2;
-          const gapMax = 64 - level * 3;
+          const gapMin = Math.max(14, 34 - level * 2);
+          const gapMax = Math.max(22, 56 - level * 3);
           const gap = gapMin + Math.random() * (gapMax - gapMin);
-          c.x = c.x < 0 ? -(gap / 2) : (gap / 2);
+          const maxCenter = halfTrack - gap / 2;
+          const center = (Math.random() * 2 - 1) * maxCenter;
+          c.x = c.x < 0 ? center - gap / 2 : center + gap / 2;
           break;
         }
         case 'rising_towers': {
           c.scale *= 0.8 + Math.random() * 0.4;
-          c.x += (Math.random() - 0.5) * 8;
+          c.x = (Math.random() * 2 - 1) * halfTrack;
           break;
         }
         case 'moving_platform': {
-          c.x += (Math.random() - 0.5) * 16;
+          const baseX = (Math.random() * 2 - 1) * halfTrack * 0.6;
+          c.x = baseX;
           if (c.oscillate) {
-            c.oscillate.amplitude += (Math.random() - 0.5) * 8;
-            c.oscillate.amplitude = Math.max(10, c.oscillate.amplitude);
+            c.oscillate.baseX = baseX;
+            c.oscillate.amplitude = 40 + Math.random() * 60;
           }
           break;
         }

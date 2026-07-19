@@ -25,9 +25,9 @@ export class Game {
     this.steerVelocity = 0;
     this.steerSensitivity = 20.0;
 
-    this.baseSpeed = 50;
-    this.currentSpeed = 50;
-    this.maxSpeed = 220;
+    this.baseSpeed = 110;
+    this.currentSpeed = 110;
+    this.maxSpeed = 350;
     this.speedBoost = 0;
 
     this.obstacles = [];
@@ -501,8 +501,10 @@ export class Game {
     this.steerVelocity += (targetSteerVel - this.steerVelocity) * 0.18;
 
     this.ship.x += this.steerVelocity * dt * 3.5;
+    const maxLateral = 80;
+    this.ship.x = Math.max(-maxLateral, Math.min(maxLateral, this.ship.x));
 
-    let targetSpeed = this.baseSpeed + (this.distance * 0.005);
+    let targetSpeed = this.baseSpeed + (this.distance * 0.008);
 
     if (this.ship.boostActive > 0) {
       targetSpeed = this.baseSpeed + 120;
