@@ -337,6 +337,7 @@ export class Game {
     this.steerVelocity = 0;
     this.shakeDuration = 0;
     this.flashDuration = 0;
+    this._deathHandled = false;
 
     this.initStars();
 
@@ -347,11 +348,20 @@ export class Game {
     document.getElementById('boost-bar-val').style.width = '0%';
   }
 
+  startDeathSequence() {
+    this.state = 'DYING';
+    this.ship.isDying = true;
+    this.ship.deathTimer = 0.9;
+    this.ship.deathSpin = 0;
+    this.ship.deathFlash = 0;
+    this.synth.triggerExplosion();
+    this.triggerScreenShake(12, 0.4);
+  }
+
   handleGameOver() {
     this.state = 'GAMEOVER';
     this.saveHighScore();
 
-    this.synth.triggerExplosion();
     this.triggerScreenShake(30, 1.8);
     this.flashDuration = 0.5;
 
@@ -416,7 +426,7 @@ export class Game {
 
             this.triggerScreenNotification('SHIELD DOWN', 'near-miss', 1.5);
           } else {
-            this.handleGameOver();
+            this.startDeathSequence();
             return;
           }
         }
@@ -514,7 +524,7 @@ export class Game {
     this.distance = this.camera.z / 10;
 
     this.camera.update(dt, this.ship.x, (this.currentSpeed - 35) / 125);
-    this.ship.update(dt, this.currentSpeed, this.steerVelocity);
+    this.ship.update(dt, this.currentSpeed, this.steerVelocity, this.multiplier, this.camera.z);
 
     const result = this.chunkManager.update(this.camera.z, this.currentSpeed);
     this.obstacles = result.obstacles;
@@ -534,7 +544,14 @@ export class Game {
     this.particles.forEach(p => p.update(dt, this.camera.z));
     this.particles = this.particles.filter(p => p.life > 0);
 
-    this.checkCollisions();
+    if (!this.ship.isDying) {
+      this.checkCollisions();
+    }
+
+    if (this.ship.isDying && this.ship.deathTimer <= 0 && !this._deathHandled) {
+      this._deathHandled = true;
+      this.handleGameOver();
+    }
 
     const speedRatio = (this.currentSpeed - 35) / 125;
     this.synth.updateEngine(speedRatio, steerDir);
@@ -612,7 +629,7 @@ export class Game {
 
     this.ctx.shadowBlur = 0;
 
-    this.ship.draw(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this));
+    this.ship.draw(this.ctx, this.camera, width, height, this.getTrackCurve.bind(this), this.currentSpeed, this.multiplier);
 
     this.ctx.restore();
 
@@ -630,7 +647,7 @@ export class Game {
 
     dt = Math.min(0.08, dt);
 
-    if (this.state === 'PLAYING') {
+    if (this.state === 'PLAYING' || this.state === 'DYING') {
       this.update(dt);
       this.draw();
     } else if (this.state === 'PAUSED') {
