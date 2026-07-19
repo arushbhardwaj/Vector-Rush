@@ -1,3 +1,5 @@
+import { COLORS, CANVAS_GLOW } from '../styleGuide.js';
+
 export class PowerUp {
   constructor(xRelative, z, type) {
     this.x = xRelative;
@@ -26,10 +28,10 @@ export class PowerUp {
     ctx.rotate(this.spin);
 
     if (this.type === 'shield') {
-      const color = '#ffea00';
+      const color = COLORS.neonYellow;
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = Math.min(25, scale / 8);
+      ctx.shadowBlur = Math.min(CANVAS_GLOW.high, scale / 8);
       ctx.lineWidth = Math.max(1.5, 2.5 * scale / 100);
 
       ctx.beginPath();
@@ -38,7 +40,7 @@ export class PowerUp {
       ctx.lineTo(0, r);
       ctx.lineTo(-r * 0.8, 0);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(255, 234, 0, 0.15)';
+      ctx.fillStyle = `rgba(${COLORS.neonYellowRGB}, 0.15)`;
       ctx.fill();
       ctx.stroke();
 
@@ -49,10 +51,10 @@ export class PowerUp {
       ctx.lineTo(0, r);
       ctx.stroke();
     } else {
-      const color = '#39ff14';
+      const color = COLORS.neonGreen;
       ctx.strokeStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = Math.min(25, scale / 8);
+      ctx.shadowBlur = Math.min(CANVAS_GLOW.high, scale / 8);
       ctx.lineWidth = Math.max(2, 3 * scale / 100);
 
       const drawChevron = (offsetY) => {

@@ -5,6 +5,7 @@ import { Camera } from './rendering/Camera.js';
 import { TrackRenderer } from './rendering/TrackRenderer.js';
 import { ChunkManager } from './chunks/ChunkManager.js';
 import { formatScore } from './utils/helpers.js';
+import { COLORS, CANVAS_GLOW } from './styleGuide.js';
 
 export class Game {
   constructor() {
@@ -305,7 +306,7 @@ export class Game {
     this.shakeDuration = duration;
   }
 
-  spawnVFXSparks(x, y, z, count, color = '#ff007f') {
+  spawnVFXSparks(x, y, z, count, color = COLORS.neonPink) {
     for (let i = 0; i < count; i++) {
       const vx = (Math.random() - 0.5) * 50;
       const vy = (Math.random() - 0.3) * 30 + 10;
@@ -354,8 +355,8 @@ export class Game {
     this.triggerScreenShake(30, 1.8);
     this.flashDuration = 0.5;
 
-    this.spawnVFXSparks(this.ship.x, this.ship.y, this.ship.z, 90, '#ff007f');
-    this.spawnVFXSparks(this.ship.x, this.ship.y + 1, this.ship.z, 50, '#00f3ff');
+    this.spawnVFXSparks(this.ship.x, this.ship.y, this.ship.z, 90, COLORS.neonPink);
+    this.spawnVFXSparks(this.ship.x, this.ship.y + 1, this.ship.z, 50, COLORS.neonCyan);
 
     document.getElementById('stat-distance').innerText = `${Math.floor(this.distance)}m`;
     document.getElementById('stat-misses').innerText = this.nearMissCount;
@@ -400,14 +401,14 @@ export class Game {
             obs.passed = true;
             this.synth.triggerExplosion();
             this.triggerScreenShake(15, 0.4);
-            this.spawnVFXSparks(obs.x, obs.h / 2, obs.z, 25, '#39ff14');
+            this.spawnVFXSparks(obs.x, obs.h / 2, obs.z, 25, COLORS.neonGreen);
             this.score += 250 * this.multiplier;
           } else if (this.ship.shield > 0) {
             obs.passed = true;
             this.ship.shield = 0;
             this.synth.triggerShieldBreak();
             this.triggerScreenShake(20, 0.6);
-            this.spawnVFXSparks(obs.x, obs.h / 2, obs.z, 30, '#ffea00');
+            this.spawnVFXSparks(obs.x, obs.h / 2, obs.z, 30, COLORS.neonYellow);
 
             const shieldHUD = document.getElementById('shield-val');
             shieldHUD.innerText = 'SHIELD: OFFLINE';
@@ -437,7 +438,7 @@ export class Game {
           this.synth.triggerNearMiss();
           this.triggerScreenShake(5, 0.25);
           this.triggerScreenNotification(`NEAR MISS! +${Math.floor(scoreBonus)}`, 'near-miss', 0.85);
-          this.spawnVFXSparks(this.ship.x, this.ship.y, obs.z, 15, '#ffea00');
+          this.spawnVFXSparks(this.ship.x, this.ship.y, obs.z, 15, COLORS.neonYellow);
         }
       }
 
@@ -467,11 +468,11 @@ export class Game {
             shieldHUD.innerText = 'SHIELD: ACTIVE';
             shieldHUD.className = 'hud-value yellow';
             this.triggerScreenNotification('SHIELD RESTORED', 'level-up', 1.0);
-            this.spawnVFXSparks(p.x, p.y, p.z, 20, '#ffea00');
+            this.spawnVFXSparks(p.x, p.y, p.z, 20, COLORS.neonYellow);
           } else if (p.type === 'boost') {
             this.ship.boostActive = 3.5;
             this.triggerScreenNotification('OVERCHARGE DETECTED!', 'level-up', 1.5);
-            this.spawnVFXSparks(p.x, p.y, p.z, 25, '#39ff14');
+            this.spawnVFXSparks(p.x, p.y, p.z, 25, COLORS.neonGreen);
             this.multiplier = Math.min(4.0, this.multiplier + 0.5);
           }
         }
@@ -555,7 +556,7 @@ export class Game {
     const width = this.canvas.width;
     const height = this.canvas.height;
 
-    this.ctx.fillStyle = '#06060c';
+    this.ctx.fillStyle = COLORS.bgColor;
     this.ctx.fillRect(0, 0, width, height);
 
     this.ctx.save();
@@ -566,7 +567,7 @@ export class Game {
       this.shakeDuration -= 0.016;
     }
 
-    const starColor = '#ffffff';
+    const starColor = COLORS.accentWhite;
     this.ctx.strokeStyle = starColor;
     this.ctx.shadowBlur = 0;
 
@@ -579,7 +580,7 @@ export class Game {
 
       const alpha = Math.min(1.0, (s.z - this.camera.z) / 80);
 
-      this.ctx.strokeStyle = this.ship.boostActive > 0 ? `rgba(57, 255, 20, ${alpha * 0.45})` : `rgba(255, 255, 255, ${alpha * 0.35})`;
+      this.ctx.strokeStyle = this.ship.boostActive > 0 ? `rgba(${COLORS.neonGreenRGB}, ${alpha * 0.45})` : `rgba(${COLORS.accentWhiteRGB}, ${alpha * 0.35})`;
       this.ctx.lineWidth = Math.max(0.5, 1.2 * proj.scale / 100);
 
       this.ctx.beginPath();
@@ -602,7 +603,7 @@ export class Game {
       const r = p.size * proj.scale * 0.12;
       this.ctx.fillStyle = p.color;
       this.ctx.shadowColor = p.color;
-      this.ctx.shadowBlur = Math.min(15, proj.scale / 10);
+      this.ctx.shadowBlur = Math.min(CANVAS_GLOW.low, proj.scale / 10);
 
       this.ctx.beginPath();
       this.ctx.arc(proj.x, proj.y, Math.max(0.5, r), 0, Math.PI * 2);
@@ -616,7 +617,7 @@ export class Game {
     this.ctx.restore();
 
     if (this.flashDuration > 0) {
-      this.ctx.fillStyle = `rgba(255, 255, 255, ${this.flashDuration})`;
+      this.ctx.fillStyle = `rgba(${COLORS.accentWhiteRGB}, ${this.flashDuration})`;
       this.ctx.fillRect(0, 0, width, height);
       this.flashDuration -= 0.035;
     }

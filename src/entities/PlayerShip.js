@@ -1,3 +1,5 @@
+import { COLORS, CANVAS_GLOW } from '../styleGuide.js';
+
 export class PlayerShip {
   constructor() {
     this.x = 0;
@@ -60,13 +62,13 @@ export class PlayerShip {
 
     if (!proj.nose || !proj.leftWing || !proj.rightWing || !proj.topFin || !proj.exhaust || !proj.belly) return;
 
-    const cyan = '#00f3ff';
-    const pink = '#ff007f';
-    const activeColor = this.boostActive > 0 ? '#39ff14' : cyan;
+    const cyan = COLORS.neonCyan;
+    const pink = COLORS.neonPink;
+    const activeColor = this.boostActive > 0 ? COLORS.neonGreen : cyan;
 
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = activeColor;
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = CANVAS_GLOW.low;
     ctx.shadowColor = activeColor;
 
     const drawLine = (ptA, ptB) => {
@@ -87,14 +89,14 @@ export class PlayerShip {
       ctx.stroke();
     };
 
-    fillFace(proj.nose, proj.leftWing, proj.belly, 'rgba(0, 243, 255, 0.15)');
-    fillFace(proj.nose, proj.rightWing, proj.belly, 'rgba(0, 243, 255, 0.15)');
+    fillFace(proj.nose, proj.leftWing, proj.belly, `rgba(${COLORS.neonCyanRGB}, 0.15)`);
+    fillFace(proj.nose, proj.rightWing, proj.belly, `rgba(${COLORS.neonCyanRGB}, 0.15)`);
     fillFace(proj.leftWing, proj.rightWing, proj.belly, 'rgba(0, 100, 200, 0.25)');
 
     ctx.strokeStyle = pink;
     ctx.shadowColor = pink;
-    fillFace(proj.nose, proj.topFin, proj.leftWing, 'rgba(255, 0, 127, 0.1)');
-    fillFace(proj.nose, proj.topFin, proj.rightWing, 'rgba(255, 0, 127, 0.1)');
+    fillFace(proj.nose, proj.topFin, proj.leftWing, `rgba(${COLORS.neonPinkRGB}, 0.1)`);
+    fillFace(proj.nose, proj.topFin, proj.rightWing, `rgba(${COLORS.neonPinkRGB}, 0.1)`);
 
     ctx.strokeStyle = activeColor;
     ctx.shadowColor = activeColor;
@@ -114,7 +116,7 @@ export class PlayerShip {
       ctx.lineTo(proj.leftWing.x, proj.leftWing.y);
       ctx.lineTo(projFlame.x, projFlame.y);
       ctx.closePath();
-      ctx.fillStyle = this.boostActive > 0 ? 'rgba(57, 255, 20, 0.4)' : 'rgba(255, 0, 127, 0.4)';
+      ctx.fillStyle = this.boostActive > 0 ? `rgba(${COLORS.neonGreenRGB}, 0.4)` : `rgba(${COLORS.neonPinkRGB}, 0.4)`;
       ctx.fill();
 
       ctx.beginPath();
@@ -122,7 +124,7 @@ export class PlayerShip {
       ctx.lineTo(proj.rightWing.x, proj.rightWing.y);
       ctx.lineTo(projFlame.x, projFlame.y);
       ctx.closePath();
-      ctx.fillStyle = this.boostActive > 0 ? 'rgba(57, 255, 20, 0.2)' : 'rgba(0, 243, 255, 0.4)';
+      ctx.fillStyle = this.boostActive > 0 ? `rgba(${COLORS.neonGreenRGB}, 0.2)` : `rgba(${COLORS.neonCyanRGB}, 0.4)`;
       ctx.fill();
     }
 
@@ -133,13 +135,13 @@ export class PlayerShip {
         const shieldRadius = 6.0 * shieldCenter.scale;
         ctx.arc(shieldCenter.x, shieldCenter.y, shieldRadius, 0, Math.PI * 2);
 
-        ctx.strokeStyle = '#ffea00';
-        ctx.shadowColor = '#ffea00';
-        ctx.shadowBlur = 20;
+        ctx.strokeStyle = COLORS.neonYellow;
+        ctx.shadowColor = COLORS.neonYellow;
+        ctx.shadowBlur = CANVAS_GLOW.medium;
         ctx.lineWidth = 2.0;
 
         const alpha = 0.08 + Math.sin(this.thrusterPulse * 0.2) * 0.04;
-        ctx.fillStyle = `rgba(255, 234, 0, ${alpha})`;
+        ctx.fillStyle = `rgba(${COLORS.neonYellowRGB}, ${alpha})`;
         ctx.fill();
         ctx.stroke();
       }

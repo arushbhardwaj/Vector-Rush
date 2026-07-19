@@ -1,3 +1,5 @@
+import { COLORS, CANVAS_GLOW } from '../styleGuide.js';
+
 export class Obstacle {
   constructor(xRelative, z, width, height, type) {
     this.x = xRelative;
@@ -47,12 +49,12 @@ export class Obstacle {
 
     if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6 || !v7 || !v8) return;
 
-    const neonPink = '#ff007f';
-    const transparentPink = 'rgba(255, 0, 127, 0.15)';
+    const neonPink = COLORS.neonPink;
+    const transparentPink = `rgba(${COLORS.neonPinkRGB}, 0.15)`;
 
     ctx.lineWidth = Math.max(1, 2.5 * v1.scale / 100);
     ctx.strokeStyle = neonPink;
-    ctx.shadowBlur = Math.min(20, v1.scale / 15);
+    ctx.shadowBlur = Math.min(CANVAS_GLOW.medium, v1.scale / 15);
     ctx.shadowColor = neonPink;
 
     const drawFace = (a, b, c, d) => {
@@ -74,7 +76,7 @@ export class Obstacle {
     drawFace(v3, v4, v8, v7);
 
     if (this.type === 'arch') {
-      const railGlow = '#00f3ff';
+      const railGlow = COLORS.neonCyan;
       ctx.strokeStyle = railGlow;
       ctx.shadowColor = railGlow;
       ctx.lineWidth = Math.max(2, 4 * v1.scale / 100);

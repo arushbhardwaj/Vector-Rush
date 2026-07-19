@@ -1,3 +1,5 @@
+import { COLORS, CANVAS_GLOW } from '../styleGuide.js';
+
 export class TrackRenderer {
   constructor(game) {
     this.game = game;
@@ -9,9 +11,9 @@ export class TrackRenderer {
     const count = Math.ceil(this.game.drawDistance / gridStep);
 
     const trackHalfW = this.game.trackWidth / 2;
-    const neonCyan = '#00f3ff';
-    const neonPink = '#ff007f';
-    const sideGlow = this.game.ship.boostActive > 0 ? '#39ff14' : neonCyan;
+    const neonCyan = COLORS.neonCyan;
+    const neonPink = COLORS.neonPink;
+    const sideGlow = this.game.ship.boostActive > 0 ? COLORS.neonGreen : neonCyan;
 
     const lanes = [-trackHalfW, -trackHalfW / 2, 0, trackHalfW / 2, trackHalfW];
 
@@ -19,12 +21,12 @@ export class TrackRenderer {
       const isRail = lIdx === 0 || lIdx === lanes.length - 1;
 
       ctx.save();
-      ctx.strokeStyle = isRail ? sideGlow : 'rgba(0, 243, 255, 0.15)';
+      ctx.strokeStyle = isRail ? sideGlow : `rgba(${COLORS.neonCyanRGB}, 0.15)`;
       ctx.lineWidth = isRail ? 3.5 : 1.5;
 
       if (isRail) {
         ctx.shadowColor = sideGlow;
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = CANVAS_GLOW.low;
       }
 
       ctx.beginPath();
@@ -57,7 +59,7 @@ export class TrackRenderer {
       const thickness = Math.max(0.5, 3.5 * leftProj.scale / 100);
       const alpha = Math.max(0.02, 0.5 * (1.0 - (lineZ - this.game.camera.z) / this.game.drawDistance));
 
-      ctx.strokeStyle = `rgba(0, 243, 255, ${alpha * 0.4})`;
+      ctx.strokeStyle = `rgba(${COLORS.neonCyanRGB}, ${alpha * 0.4})`;
       ctx.lineWidth = thickness;
 
       ctx.beginPath();
@@ -75,7 +77,7 @@ export class TrackRenderer {
           ctx.lineWidth = Math.max(1, 2.0 * leftProj.scale / 100);
           ctx.strokeStyle = fenceColor;
           ctx.shadowColor = fenceColor;
-          ctx.shadowBlur = Math.min(15, leftProj.scale / 12);
+          ctx.shadowBlur = Math.min(CANVAS_GLOW.low, leftProj.scale / 12);
 
           ctx.beginPath();
           ctx.moveTo(leftProj.x, leftProj.y);
