@@ -35,7 +35,7 @@ export class Game {
     this.particles = [];
     this.stars = [];
 
-    this.trackWidth = 84;
+    this.trackWidth = 600;
     this.drawDistance = 450;
     this.chunkManager = new ChunkManager(this.trackWidth, this.drawDistance);
 
@@ -501,11 +501,6 @@ export class Game {
     this.steerVelocity += (targetSteerVel - this.steerVelocity) * 0.18;
 
     this.ship.x += this.steerVelocity * dt * 3.5;
-
-    const halfTrackW = this.trackWidth / 2;
-    const boundary = halfTrackW - this.ship.width / 2 - 2;
-    if (this.ship.x < -boundary) this.ship.x = -boundary;
-    if (this.ship.x > boundary) this.ship.x = boundary;
 
     let targetSpeed = this.baseSpeed + (this.distance * 0.005);
 
